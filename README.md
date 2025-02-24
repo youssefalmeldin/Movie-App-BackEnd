@@ -78,8 +78,6 @@ This project is a **Movie Management Application** built using **Spring Boot** a
 ## Repository Link
 [Movie-App-BackEnd](https://github.com/youssefalmeldin/Movie-App-BackEnd)
 
-## License
-This project is licensed under the MIT License.
 
 ---
 **Author:** Youssef Alm El-Den
