@@ -97,13 +97,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public MovieDTO getMovie(String id) {
-        return movieRepository.findById(id)
-                .map(movieMapper::toDTO)
-                .orElseThrow(() -> new NotFoundException("Movie not found"));
-    }
-
-    @Override
     public void rateMovie(MovieRatingDTO movieRatingDTO) {
         Movie movie = movieRepository.findById(movieRatingDTO.getMovieId())
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
@@ -118,13 +111,21 @@ public class MovieServiceImpl implements MovieService {
         movieRatingRepository.save(rating);
     }
 
+
+    @Override
+    public MovieDTO getMovie(String id) {
+        return movieRepository.findById(id)
+                .map(movieMapper::toDTO)
+                .orElseThrow(() -> new NotFoundException("Movie not found"));
+    }
+
+
     @Override
     public double getMovieAverageRating(String movieId) {
         List<MovieRating> ratings = movieRatingRepository.findByMovieId(movieId);
         if (ratings.isEmpty()) return 0;
         return ratings.stream().mapToDouble(MovieRating::getRating).average().orElse(0);
     }
-
     private MovieDTO getMovieByImdbId(String imdbID) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
