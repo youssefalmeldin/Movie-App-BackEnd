@@ -38,8 +38,26 @@ This project is a **Movie Management Application** built using **Spring Boot** a
 - **Search Movies from OMDB:** `GET http://localhost:8080/admin/movie?searchText=father`
 
 ### User APIs
-- **Get Movie Details:** `GET http://localhost:8080/users/movie/{movieId}`
-- **List Movies Available:** `GET http://localhost:8080/users/movie`
+- **Get Movie Details:**  
+  `GET http://localhost:8080/users/movie/{movieId}`
+
+- **List Movies Available:**  
+  `GET http://localhost:8080/users/movie`
+
+- **Get Movie Average Rating:**  
+  `GET http://localhost:8080/users/movie/{movieId}/average-rating`  
+  *Example:*  
+  `GET http://localhost:8080/users/movie/123/average-rating`
+
+- **Rate a Movie:**  
+  `POST http://localhost:8080/users/movie/rate`  
+  *Example Request Body (JSON):*
+  ```json
+  {
+    "movieId": "123",
+    "userId": "user456",
+    "rating": 4.5
+  }
 
 ## Setup & Installation
 
