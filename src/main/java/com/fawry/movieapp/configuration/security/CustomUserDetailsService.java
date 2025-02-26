@@ -1,4 +1,4 @@
-package com.fawry.movieapp.configuration;
+package com.fawry.movieapp.configuration.security;
 
 import com.fawry.movieapp.dal.model.Admin;
 import com.fawry.movieapp.dal.model.User;
