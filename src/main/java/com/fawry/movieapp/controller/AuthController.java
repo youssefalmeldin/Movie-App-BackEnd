@@ -24,9 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-
     private final AuthenticationManager authenticationManager;
-
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
@@ -35,7 +33,10 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(authToken);
-            String token = jwtUtil.generateToken(authentication.getName());
+            // Get the user's role from the authentication object
+            String role = authentication.getAuthorities().iterator().next().getAuthority();
+            // Generate token with both username and role
+            String token = jwtUtil.generateToken(authentication.getName(), role);
             return ResponseEntity.ok("{ \"token\":\"" + token + "\"}");
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");

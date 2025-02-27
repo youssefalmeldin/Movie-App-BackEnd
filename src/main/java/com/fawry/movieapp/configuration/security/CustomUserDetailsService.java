@@ -17,12 +17,10 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
     private final AdminRepository adminRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
         Admin admin = adminRepository.findByUsername(username);
         if (admin != null) {
             return new org.springframework.security.core.userdetails.User(

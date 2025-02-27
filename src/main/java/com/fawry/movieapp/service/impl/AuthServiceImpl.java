@@ -1,5 +1,6 @@
 package com.fawry.movieapp.service.impl;
 
+import com.fawry.movieapp.configuration.security.JwtUtil;
 import com.fawry.movieapp.dal.model.Admin;
 import com.fawry.movieapp.dal.model.User;
 import com.fawry.movieapp.dal.repo.AdminRepository;
@@ -19,14 +20,11 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-
     private final AdminRepository adminRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final UserMapper userMapper;
-
     private final AdminMapper adminMapper;
+    private final JwtUtil jwtUtil;
 
     public String registerUser(UserDTO userDTO) {
         if (userRepository.findByUsername(userDTO.getUsername()) != null) {
@@ -35,9 +33,9 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userMapper.toEntity(userDTO);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-
         userRepository.save(user);
-        return "User registered successfully";
+        // Generate token with ROLE_USER
+        return jwtUtil.generateToken(user.getUsername(), "ROLE_USER");
     }
 
     public String registerAdmin(AdminDTO adminDTO) {
@@ -47,8 +45,8 @@ public class AuthServiceImpl implements AuthService {
 
         Admin admin = adminMapper.toEntity(adminDTO);
         admin.setPassword(passwordEncoder.encode(adminDTO.getPassword()));
-
         adminRepository.save(admin);
-        return "Admin registered successfully";
+        // Generate token with ROLE_ADMIN
+        return jwtUtil.generateToken(admin.getUsername(), "ROLE_ADMIN");
     }
 }
