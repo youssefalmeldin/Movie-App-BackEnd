@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -28,7 +30,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody @Valid LoginDTO loginRequest) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody @Valid LoginDTO loginRequest) {
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
         try {
@@ -36,20 +38,21 @@ public class AuthController {
             // Get the user's role from the authentication object
             String role = authentication.getAuthorities().iterator().next().getAuthority();
             // Generate token with both username and role
-            String token = jwtUtil.generateToken(authentication.getName(), role);
-            return ResponseEntity.ok("{ \"token\":\"" + token + "\"}");
+            String token = jwtUtil.generateToken(authentication.getName(), role.replace("ROLE_", ""));
+
+            return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Error", "Invalid credentials"));
         }
     }
 
     @PostMapping("/register/user")
-    public String registerUser(@RequestBody @Valid UserDTO userDTO) {
-        return authService.registerUser(userDTO);
+    public Map<String, String> registerUser(@RequestBody @Valid UserDTO userDTO) {
+        return Map.of("token", authService.registerUser(userDTO));
     }
 
     @PostMapping("/register/admin")
-    public String registerAdmin(@RequestBody @Valid AdminDTO adminDTO) {
-        return authService.registerAdmin(adminDTO);
+    public Map<String, String> registerAdmin(@RequestBody @Valid AdminDTO adminDTO) {
+        return Map.of("token", authService.registerAdmin(adminDTO));
     }
 }

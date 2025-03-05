@@ -7,7 +7,7 @@ import com.fawry.movieapp.dal.repo.AdminRepository;
 import com.fawry.movieapp.dal.repo.UserRepository;
 import com.fawry.movieapp.dto.AdminDTO;
 import com.fawry.movieapp.dto.UserDTO;
-import com.fawry.movieapp.exception.NotFoundException;
+import com.fawry.movieapp.exception.ConflictDataException;
 import com.fawry.movieapp.mapper.AdminMapper;
 import com.fawry.movieapp.mapper.UserMapper;
 import com.fawry.movieapp.service.AuthService;
@@ -28,25 +28,25 @@ public class AuthServiceImpl implements AuthService {
 
     public String registerUser(UserDTO userDTO) {
         if (userRepository.findByUsername(userDTO.getUsername()) != null) {
-            throw new NotFoundException("Username already taken");
+            throw new ConflictDataException("Username already taken");
         }
 
         User user = userMapper.toEntity(userDTO);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userRepository.save(user);
         // Generate token with ROLE_USER
-        return jwtUtil.generateToken(user.getUsername(), "ROLE_USER");
+        return jwtUtil.generateToken(user.getUsername(), "USER");
     }
 
     public String registerAdmin(AdminDTO adminDTO) {
         if (adminRepository.findByUsername(adminDTO.getUsername()) != null) {
-            throw new NotFoundException("Admin username already taken");
+            throw new ConflictDataException("Admin username already taken");
         }
 
         Admin admin = adminMapper.toEntity(adminDTO);
         admin.setPassword(passwordEncoder.encode(adminDTO.getPassword()));
         adminRepository.save(admin);
         // Generate token with ROLE_ADMIN
-        return jwtUtil.generateToken(admin.getUsername(), "ROLE_ADMIN");
+        return jwtUtil.generateToken(admin.getUsername(), "ADMIN");
     }
 }

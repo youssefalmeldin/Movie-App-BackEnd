@@ -1,9 +1,8 @@
 package com.fawry.movieapp.configuration.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -13,47 +12,57 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+    private static final long JWT_EXPIRATION_MS = 86400000; // 1 day expiration
 
-    private final String jwtSecret = "my_very_secure_secret_key__my_very_secure_secret_key__my_very_secure_secret_key";
-    private final long jwtExpirationMs = 86400000; // 1 يوم
+    private static final String JWT_SECRET = "my_very_secure_secret_key__my_very_secure_secret_key__my_very_secure_secret_key_" +
+            "my_very_secure_secret_key__my_very_secure_secret_key__my_very_secure_secret_key_my_very_secure_secret_key_" +
+            "my_very_secure_secret_key__my_very_secure_secret_key__my_very_secure_secret_key_my_very_secure_secret_key_" +
+            "my_very_secure_secret_key__my_very_secure_secret_key__my_very_secure_secret_key_my_very_secure_secret_key_" +
+            "_my_very_secure_secret_key__my_very_secure_secret_key_my_very_secure_secret_key__my_very_secure_secret_key_";
 
-    private final SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    private final SecretKey key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
 
+    // Generate token with the role included as a claim
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key, Jwts.SIG.HS256) // ✅ استخدام `Jwts.SIG.HS256`
+                .expiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS))
+                .signWith(key, Jwts.SIG.HS512)
                 .compact();
     }
 
-    private Claims extractClaims(String token) {
-        return Jwts.parser()
+    // Extract username from the token
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        return claims.getSubject();
     }
 
-    public String getUsernameFromToken(String token) {
-        return extractClaims(token).getSubject();
-    }
-
+    // Extract role from the token
     public String getRoleFromToken(String token) {
-        return extractClaims(token).get("role", String.class);
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.get("role", String.class);
     }
 
+    // Validate the token
     public boolean validateToken(String token) {
         try {
-            extractClaims(token);
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            logger.error("JWT validation error: {}", e.getMessage());
+        } catch (Exception e) {
             return false;
         }
     }
-
 }
