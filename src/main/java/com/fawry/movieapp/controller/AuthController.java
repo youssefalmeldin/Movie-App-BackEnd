@@ -32,13 +32,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody @Valid LoginDTO loginRequest) {
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.getUsername(), loginRequest.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(authToken);
             // Get the user's role from the authentication object
             String role = authentication.getAuthorities().iterator().next().getAuthority();
             // Generate token with both username and role
-            String token = jwtUtil.generateToken(authentication.getName(), role.replace("ROLE_", ""));
+            String token = jwtUtil.generateToken(authentication.getName(), role.replace("ROLE_", "")); // ROLE_ADMIN -> ADMIN
 
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException ex) {

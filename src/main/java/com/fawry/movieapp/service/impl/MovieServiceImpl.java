@@ -126,6 +126,7 @@ public class MovieServiceImpl implements MovieService {
         if (ratings.isEmpty()) return 0;
         return ratings.stream().mapToDouble(MovieRating::getRating).average().orElse(0);
     }
+
     private MovieDTO getMovieByImdbId(String imdbID) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder

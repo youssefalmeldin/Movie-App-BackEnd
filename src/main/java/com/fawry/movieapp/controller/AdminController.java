@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -16,7 +15,6 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/admin/movie")
-@PreAuthorize("hasRole('ADMIN')")
 @RestController
 public class AdminController {
 

@@ -27,8 +27,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
 
     public String registerUser(UserDTO userDTO) {
-        if (userRepository.findByUsername(userDTO.getUsername()) != null) {
-            throw new ConflictDataException("Username already taken");
+        if (userRepository.findByUsername(userDTO.getUsername()) != null ||
+                adminRepository.findByUsername(userDTO.getUsername()) != null) {
+            throw new ConflictDataException("Username already used");
         }
 
         User user = userMapper.toEntity(userDTO);
@@ -39,8 +40,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public String registerAdmin(AdminDTO adminDTO) {
-        if (adminRepository.findByUsername(adminDTO.getUsername()) != null) {
-            throw new ConflictDataException("Admin username already taken");
+        if (userRepository.findByUsername(adminDTO.getUsername()) != null ||
+                adminRepository.findByUsername(adminDTO.getUsername()) != null) {
+            throw new ConflictDataException("Username already used");
         }
 
         Admin admin = adminMapper.toEntity(adminDTO);
