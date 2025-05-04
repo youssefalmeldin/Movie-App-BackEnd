@@ -9,7 +9,7 @@ import java.util.List;
 public class MovieAPIRs {
 
     @JsonProperty("Search")
-    private List<MovieDTO> search;
+    private List<MovieAPI> search;
 
     @JsonProperty("totalResults")
     private Integer totalResults;

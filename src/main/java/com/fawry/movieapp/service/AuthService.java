@@ -1,11 +1,15 @@
 package com.fawry.movieapp.service;
 
 import com.fawry.movieapp.dto.AdminDTO;
+import com.fawry.movieapp.dto.AuthDTO;
+import com.fawry.movieapp.dto.LoginDTO;
 import com.fawry.movieapp.dto.UserDTO;
 
 public interface AuthService {
 
-    String registerUser(UserDTO userDTO);
+    AuthDTO login(LoginDTO loginRequest);
 
-    String registerAdmin(AdminDTO adminDTO);
+    AuthDTO registerUser(UserDTO userDTO);
+
+    AuthDTO registerAdmin(AdminDTO adminDTO);
 }

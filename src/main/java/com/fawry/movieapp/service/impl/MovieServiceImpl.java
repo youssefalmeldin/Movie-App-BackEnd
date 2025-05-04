@@ -5,6 +5,7 @@ import com.fawry.movieapp.dal.model.Movie;
 import com.fawry.movieapp.dal.model.MovieRating;
 import com.fawry.movieapp.dal.repo.MovieRatingRepository;
 import com.fawry.movieapp.dal.repo.MovieRepository;
+import com.fawry.movieapp.dto.MovieAPI;
 import com.fawry.movieapp.dto.MovieAPIRs;
 import com.fawry.movieapp.dto.MovieDTO;
 import com.fawry.movieapp.dto.MovieRatingDTO;
@@ -42,7 +43,10 @@ public class MovieServiceImpl implements MovieService {
                 .bodyToMono(MovieAPIRs.class)
                 .blockOptional()
                 .map(MovieAPIRs::getSearch)
-                .orElse(Collections.emptyList());
+                .stream()
+                .flatMap(Collection::stream)
+                .map(movieMapper::toDTO)
+                .toList();
 
         Set<String> imdbIds = apiMovies.stream().map(MovieDTO::getImdbID).collect(Collectors.toSet());
         Map<String, String> moviesIds = movieRepository.findAllByImdbIDIn(imdbIds)
@@ -69,7 +73,6 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String addMovie(String imdbID) {
-        // TODO: Check if imdbID exist in DB or not
         MovieDTO movieDTO = getMovieByImdbId(imdbID);
         if (movieRepository.existsByImdbID(imdbID)) {
             throw new ConflictDataException("Movie already exists");
@@ -133,8 +136,9 @@ public class MovieServiceImpl implements MovieService {
                         .queryParam("i", imdbID)
                         .build())
                 .retrieve()
-                .bodyToMono(MovieDTO.class)
+                .bodyToMono(MovieAPI.class)
                 .blockOptional()
+                .map(movieMapper::toDTO)
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
     }
 }

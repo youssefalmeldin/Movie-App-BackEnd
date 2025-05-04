@@ -1,6 +1,7 @@
 package com.fawry.movieapp.mapper;
 
 import com.fawry.movieapp.dal.model.Movie;
+import com.fawry.movieapp.dto.MovieAPI;
 import com.fawry.movieapp.dto.MovieDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -13,6 +14,8 @@ public interface MovieMapper {
     MovieMapper INSTANCE = Mappers.getMapper(MovieMapper.class);
 
     MovieDTO toDTO(Movie movie);
+
+    MovieDTO toDTO(MovieAPI movieAPI);
 
     Movie toEntity(MovieDTO movieDTO);
 }

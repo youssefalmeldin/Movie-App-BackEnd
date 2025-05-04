@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -36,7 +35,7 @@ public class SecurityConfigurations {
                 )
                 .csrf(AbstractHttpConfigurer::disable) // Cross-Site Request Forgery
                 .cors(Customizer.withDefaults()) // Cross-Origin Resource Sharing
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilter(jwtAuthenticationFilter);
 
         return http.build();
     }
