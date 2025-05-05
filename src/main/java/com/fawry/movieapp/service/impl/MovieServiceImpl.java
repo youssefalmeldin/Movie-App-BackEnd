@@ -5,57 +5,44 @@ import com.fawry.movieapp.dal.model.Movie;
 import com.fawry.movieapp.dal.model.MovieRating;
 import com.fawry.movieapp.dal.repo.MovieRatingRepository;
 import com.fawry.movieapp.dal.repo.MovieRepository;
-import com.fawry.movieapp.dto.MovieAPI;
-import com.fawry.movieapp.dto.MovieAPIRs;
 import com.fawry.movieapp.dto.MovieDTO;
 import com.fawry.movieapp.dto.MovieRatingDTO;
 import com.fawry.movieapp.exception.ConflictDataException;
 import com.fawry.movieapp.exception.NotFoundException;
 import com.fawry.movieapp.mapper.MovieMapper;
+import com.fawry.movieapp.service.ExternalMovieService;
 import com.fawry.movieapp.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
-    private final WebClient webClient;
-
     private final MovieMapper movieMapper;
-
     private final MovieRepository movieRepository;
-
     private final MovieRatingRepository movieRatingRepository;
+    private final ExternalMovieService externalMovieService;
 
     @Override
     public List<MovieDTO> listExternalMovies(String searchText, Integer page) {
-        List<MovieDTO> apiMovies = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("s", searchText)
-                        .queryParam("page", page)
-                        .build())
-                .retrieve()
-                .bodyToMono(MovieAPIRs.class)
-                .blockOptional()
-                .map(MovieAPIRs::getSearch)
-                .stream()
-                .flatMap(Collection::stream)
-                .map(movieMapper::toDTO)
-                .toList();
+        List<MovieDTO> apiMovies = externalMovieService.searchMovies(searchText, page);
+        Set<String> imdbIds = apiMovies.stream()
+                .map(MovieDTO::getImdbID)
+                .collect(Collectors.toSet());
 
-        Set<String> imdbIds = apiMovies.stream().map(MovieDTO::getImdbID).collect(Collectors.toSet());
         Map<String, String> moviesIds = movieRepository.findAllByImdbIDIn(imdbIds)
-                .stream().collect(Collectors.toMap(Movie::getImdbID, Movie::getId));
+                .stream()
+                .collect(Collectors.toMap(Movie::getImdbID, Movie::getId));
 
         for (MovieDTO movieDTO : apiMovies) {
-            String imdbID = movieDTO.getImdbID();
-            String dbId = moviesIds.get(imdbID);
-            movieDTO.setId(dbId);
+            movieDTO.setId(moviesIds.get(movieDTO.getImdbID()));
         }
         return apiMovies;
     }
@@ -73,10 +60,10 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String addMovie(String imdbID) {
-        MovieDTO movieDTO = getMovieByImdbId(imdbID);
         if (movieRepository.existsByImdbID(imdbID)) {
             throw new ConflictDataException("Movie already exists");
         }
+        MovieDTO movieDTO = externalMovieService.getMovieByImdbId(imdbID);
         Movie movie = movieMapper.toEntity(movieDTO);
         return movieRepository.save(movie).getId();
     }
@@ -84,7 +71,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public List<MovieDTO> addMovies(List<String> imdbIDs) {
         List<Movie> movies = imdbIDs.stream()
-                .map(this::getMovieByImdbId)
+                .map(externalMovieService::getMovieByImdbId)
                 .map(movieMapper::toEntity)
                 .collect(Collectors.toList());
 
@@ -94,8 +81,8 @@ public class MovieServiceImpl implements MovieService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public void deleteMovie(String id) {
-
         movieRepository.deleteById(id);
     }
 
@@ -104,16 +91,18 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = movieRepository.findById(movieRatingDTO.getMovieId())
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
 
-        MovieRating rating = movieRatingRepository.findByUserIdAndMovieId(movieRatingDTO.getUserId(), movieRatingDTO.getMovieId());
+        MovieRating rating = movieRatingRepository.findByUserIdAndMovieId(
+                movieRatingDTO.getUserId(), movieRatingDTO.getMovieId());
+
         if (rating == null) {
             rating = new MovieRating();
             rating.setMovieId(movie.getId());
             rating.setUserId(movieRatingDTO.getUserId());
         }
+
         rating.setRating(movieRatingDTO.getRating());
         movieRatingRepository.save(rating);
     }
-
 
     @Override
     public MovieDTO getMovie(String id) {
@@ -122,23 +111,13 @@ public class MovieServiceImpl implements MovieService {
                 .orElseThrow(() -> new NotFoundException("Movie not found"));
     }
 
-
     @Override
     public double getMovieAverageRating(String movieId) {
         List<MovieRating> ratings = movieRatingRepository.findByMovieId(movieId);
         if (ratings.isEmpty()) return 0;
-        return ratings.stream().mapToDouble(MovieRating::getRating).average().orElse(0);
-    }
-
-    private MovieDTO getMovieByImdbId(String imdbID) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .queryParam("i", imdbID)
-                        .build())
-                .retrieve()
-                .bodyToMono(MovieAPI.class)
-                .blockOptional()
-                .map(movieMapper::toDTO)
-                .orElseThrow(() -> new NotFoundException("Movie not found"));
+        return ratings.stream()
+                .mapToDouble(MovieRating::getRating)
+                .average()
+                .orElse(0);
     }
 }
