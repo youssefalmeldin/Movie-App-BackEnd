@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthDTO login(LoginDTO loginRequest) {
         UsernamePasswordAuthenticationToken authToken =
-                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.getUsername(), loginRequest.getPassword());
+                UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.getUsername().toLowerCase(), loginRequest.getPassword());
         Authentication authentication = authenticationManager.authenticate(authToken);
         // Get the user's role from the authentication object
         String role = authentication.getAuthorities().iterator().next().getAuthority();
@@ -46,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public AuthDTO registerUser(UserDTO userDTO) {
+        userDTO.setUsername(userDTO.getUsername().toLowerCase());
         if (userRepository.findByUsername(userDTO.getUsername()) != null ||
                 adminRepository.findByUsername(userDTO.getUsername()) != null) {
             throw new ConflictDataException("Username already used");
@@ -59,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public AuthDTO registerAdmin(AdminDTO adminDTO) {
+        adminDTO.setUsername(adminDTO.getUsername().toLowerCase());
         if (userRepository.findByUsername(adminDTO.getUsername()) != null ||
                 adminRepository.findByUsername(adminDTO.getUsername()) != null) {
             throw new ConflictDataException("Username already used");

@@ -53,7 +53,7 @@ public class MovieAPI {
     private String poster;
 
     @JsonProperty("Ratings")
-    private List<RatingDTO> ratings;
+    private List<RatingAPI> ratings;
 
     @JsonProperty("Metascore")
     private String metascore;
